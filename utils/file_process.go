@@ -3,8 +3,10 @@ package utils
 import (
 	"fmt"
 	"io/ioutil"
+
 	"github.com/h2non/filetype"
 )
+
 /*
 Este convierte el binario a un formato legible para Windows [extensión]
 A Linux le da igual XD
@@ -13,7 +15,6 @@ output: nil
 */
 
 func BinToFile(pathFile string) error {
-
 	binData, err := ioutil.ReadFile(pathFile)
 	if err != nil {
 		return fmt.Errorf("error al leer archivo: %v", err)
@@ -28,7 +29,7 @@ func BinToFile(pathFile string) error {
 		kind.Extension = ".unknown"
 	}
 
-	outputFileName := pathFile +"."+ kind.Extension
+	outputFileName := pathFile + "." + kind.Extension
 
 	err = ioutil.WriteFile(outputFileName, binData, 0644)
 	if err != nil {
@@ -36,5 +37,26 @@ func BinToFile(pathFile string) error {
 	}
 
 	fmt.Printf("Archivo restaurado guardado como: %s\n", outputFileName)
+	return nil
+}
+
+/*
+Convierte cualquier archivo a binario
+input: /ruta/archivo.ext
+output: /ruta/archivo.bin
+*/
+func FileToBin(pathFile string) error {
+	data, err := ioutil.ReadFile(pathFile)
+	if err != nil {
+		return fmt.Errorf("error al leer archivo: %v", err)
+	}
+
+	outputFileName := pathFile + ".bin"
+	err = ioutil.WriteFile(outputFileName, data, 0644)
+	if err != nil {
+		return fmt.Errorf("error al guardar el archivo binario: %v", err)
+	}
+
+	fmt.Printf("Archivo convertido a binario guardado como: %s\n", outputFileName)
 	return nil
 }
