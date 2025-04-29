@@ -1,44 +1,97 @@
 package main
 
 import (
-	"bufio"
+	"flag"
 	"fmt"
+	"log"
 	"os"
-	"strings"
-
 	"github.com/XLex0/XCipherGo/utils"
 )
 
 func main() {
-	reader := bufio.NewReader(os.Stdin)
+	// Subcomandos
+	encryptCmd := flag.NewFlagSet("encrypt", flag.ExitOnError)
+	decryptCmd := flag.NewFlagSet("decrypt", flag.ExitOnError)
+	cesarEncCmd := flag.NewFlagSet("cesarenc", flag.ExitOnError)
+	cesarDecCmd := flag.NewFlagSet("cesardec", flag.ExitOnError)
 
-	fmt.Println("1. BinToFile")
-	fmt.Println("2. FileToBin")
-	fmt.Printf("Seleccione una opción: ")
-	opcion, _ := reader.ReadString('\n')
-	opcion = strings.TrimSpace(opcion)
+	var (
+		input    string
+		output   string
+		password string
+		shift    int
+	)
 
-	fmt.Printf("Ingrese la ruta: ")
-	path, _ := reader.ReadString('\n')
-	path = strings.TrimSpace(path)
+	// Flags para encrypt y decrypt
+	encryptCmd.StringVar(&input, "in", "", "Archivo de entrada")
+	encryptCmd.StringVar(&output, "out", "", "Archivo de salida")
+	encryptCmd.StringVar(&password, "pass", "", "Contraseña")
 
-	var err error
-	if opcion == "1" {
-		err = utils.BinToFile(path)
-	} else if opcion == "2" {
-		err = utils.FileToBin(path)
-	} else {
-		fmt.Println("Opción no válida")
-		return
+	decryptCmd.StringVar(&input, "in", "", "Archivo cifrado")
+	decryptCmd.StringVar(&output, "out", "", "Archivo de salida")
+	decryptCmd.StringVar(&password, "pass", "", "Contraseña")
+
+	// Flags para César
+	cesarEncCmd.StringVar(&input, "in", "", "Archivo a cifrar (cifrado César sobre base64)")
+	cesarEncCmd.IntVar(&shift, "shift", 3, "Desplazamiento César")
+	cesarEncCmd.StringVar(&output, "out", "", "Archivo de salida")
+
+	cesarDecCmd.StringVar(&input, "in", "", "Archivo cifrado (César sobre base64)")
+	cesarDecCmd.IntVar(&shift, "shift", 3, "Desplazamiento César")
+	cesarDecCmd.StringVar(&output, "out", "", "Archivo restaurado")
+
+	if len(os.Args) < 2 {
+		fmt.Println("Uso: encrypt | decrypt | cesarenc | cesardec")
+		os.Exit(1)
 	}
 
-	if err != nil {
-		fmt.Println("Error:", err)
-	} else {
-		fmt.Println("Conversión completada.")
+	switch os.Args[1] {
+	case "encrypt":
+		encryptCmd.Parse(os.Args[2:])
+		check(input, output, password)
+		checkErr(utils.EncryptFile(input, output, password))
+
+	case "decrypt":
+		decryptCmd.Parse(os.Args[2:])
+		check(input, output, password)
+		checkErr(utils.DecryptFile(input, output, password))
+
+	case "cesarenc":
+		cesarEncCmd.Parse(os.Args[2:])
+		check(input, output, "")
+		base64Str, err := utils.FileToBase64(input)
+		checkErr(err)
+		cipher := utils.CaesarEncrypt(base64Str, shift)
+		checkErr(os.WriteFile(output, []byte(cipher), 0644))
+
+	case "cesardec":
+		cesarDecCmd.Parse(os.Args[2:])
+		check(input, output, "")
+		data, err := os.ReadFile(input)
+		checkErr(err)
+		base64Str := utils.CaesarDecrypt(string(data), shift)
+		checkErr(utils.Base64ToFile(base64Str, output))
+
+	default:
+		fmt.Println("Comando no reconocido. Usa: encrypt | decrypt | cesarenc | cesardec")
+		os.Exit(1)
 	}
 }
 
-/*Para ingresar la ruta en la consola, quitar las comillas
-Ejemplo de ruta: C:\Users\Emilio\OneDrive\Escritorio\FAMILIA GENERAL\Quinga Quishpe Emilio Josue.pdf
-*/
+func check(in, out, pass string) {
+	if in == "" {
+		log.Fatal("Falta -in")
+	}
+	if out == "" {
+		log.Fatal("Falta -out")
+	}
+	if (os.Args[1] == "encrypt" || os.Args[1] == "decrypt") && pass == "" {
+		log.Fatal("Falta -pass")
+	}
+}
+
+func checkErr(err error) {
+	if err != nil {
+		log.Fatal(err)
+	}
+}
