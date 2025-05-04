@@ -1,0 +1,18 @@
+Para probar el programa solo sigue los siguientes pasos:
+1: ejecutar servidor
+`go run ./web/main.go`
+
+2: colocarse en carpeta pruebas
+```
+cd pruebas
+
+// probar encriptación
+curl -F "file=@pruebas.txt" -F "pass=123" http://localhost:8080/encrypt --output archivo_encriptado
+
+// probar desencriptación
+curl -F "file=@archivo_encriptado" -F "pass=123" http://localhost:8080/decrypt --output archivo_desencriptado.txt
+
+```
+
+
+si el archivo_desencriptado es igual a pruebas.txt todo bien.
