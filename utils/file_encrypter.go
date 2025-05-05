@@ -4,12 +4,15 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"io"
-	"os"
 	"io/ioutil"
-	"encoding/base64"
+	"os"
+	"path/filepath"
+	"strings"
+
 	"github.com/h2non/filetype"
 )
 
@@ -33,7 +36,7 @@ func padKey(password string) []byte {
 }
 
 func EncryptFile(inputPath, outputPath string, pass string) error {
-	key := padKey(pass)  // Correcta declaración de 'key'
+	key := padKey(pass) // Correcta declaración de 'key'
 
 	plainData, err := os.ReadFile(inputPath)
 	if err != nil {
@@ -59,9 +62,9 @@ func EncryptFile(inputPath, outputPath string, pass string) error {
 	return os.WriteFile(outputPath, ciphertext, 0644)
 }
 
-// Desencripta un archivo usando AES-GCM 
+// Desencripta un archivo usando AES-GCM
 func DecryptFile(inputPath, outputPath string, pass string) error {
-	key := padKey(pass)  // Correcta declaración de 'key'
+	key := padKey(pass) // Correcta declaración de 'key'
 
 	cipherData, err := os.ReadFile(inputPath)
 	if err != nil {
@@ -107,14 +110,15 @@ func BinToFile(pathFile string) error {
 
 	kind, err := filetype.Match(binData)
 	if err != nil {
-		return fmt.Errorf("Error en conversión")
+		return fmt.Errorf("error en detección de tipo: %v", err)
 	}
 
+	extension := kind.Extension
 	if kind == filetype.Unknown {
-		kind.Extension = ".unknown"
+		extension = "unknown"
 	}
 
-	outputFileName := pathFile + "." + kind.Extension
+	outputFileName := ChangeExtension(pathFile, extension)
 
 	err = ioutil.WriteFile(outputFileName, binData, 0644)
 	if err != nil {
@@ -125,18 +129,14 @@ func BinToFile(pathFile string) error {
 	return nil
 }
 
-/*
-Convierte cualquier archivo a binario
-input: /ruta/archivo.ext
-output: /ruta/archivo.bin
-*/
 func FileToBin(pathFile string) error {
 	data, err := ioutil.ReadFile(pathFile)
 	if err != nil {
 		return fmt.Errorf("error al leer archivo: %v", err)
 	}
 
-	outputFileName := pathFile + ".bin"
+	outputFileName := ChangeExtension(pathFile, "bin")
+
 	err = ioutil.WriteFile(outputFileName, data, 0644)
 	if err != nil {
 		return fmt.Errorf("error al guardar el archivo binario: %v", err)
@@ -190,4 +190,10 @@ func CaesarDecrypt(encryptedStr string, shift int) string {
 	}
 
 	return string(decrypted)
+}
+
+func ChangeExtension(pathFile, newExt string) string {
+	dir := filepath.Dir(pathFile)
+	base := strings.TrimSuffix(filepath.Base(pathFile), filepath.Ext(pathFile))
+	return filepath.Join(dir, base+"."+newExt)
 }
