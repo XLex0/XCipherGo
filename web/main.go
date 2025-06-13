@@ -197,5 +197,8 @@ func main() {
 	r.POST("/cesardec", cesarDecryptHandler) // Para desencriptar con César
 
 	// Iniciamos el servidor en localhost:8080
-	r.Run(":8080")
+	if err := r.Run(":8080"); err != nil {
+		log.Fatalf("Error al iniciar el servidor: %v", err)
+	}
+
 }

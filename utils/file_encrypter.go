@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -103,7 +102,7 @@ output: nil
 */
 
 func BinToFile(pathFile string) error {
-	binData, err := ioutil.ReadFile(pathFile)
+	binData, err := os.ReadFile(pathFile)
 	if err != nil {
 		return fmt.Errorf("error al leer archivo: %v", err)
 	}
@@ -120,7 +119,7 @@ func BinToFile(pathFile string) error {
 
 	outputFileName := ChangeExtension(pathFile, extension)
 
-	err = ioutil.WriteFile(outputFileName, binData, 0644)
+	err = os.WriteFile(outputFileName, binData, 0644)
 	if err != nil {
 		return fmt.Errorf("error al guardar el archivo restaurado: %v", err)
 	}
@@ -130,14 +129,14 @@ func BinToFile(pathFile string) error {
 }
 
 func FileToBin(pathFile string) error {
-	data, err := ioutil.ReadFile(pathFile)
+	data, err := os.ReadFile(pathFile)
 	if err != nil {
 		return fmt.Errorf("error al leer archivo: %v", err)
 	}
 
 	outputFileName := ChangeExtension(pathFile, "bin")
 
-	err = ioutil.WriteFile(outputFileName, data, 0644)
+	err = os.WriteFile(outputFileName, data, 0644)
 	if err != nil {
 		return fmt.Errorf("error al guardar el archivo binario: %v", err)
 	}
