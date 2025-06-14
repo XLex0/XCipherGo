@@ -1,0 +1,21 @@
+name: Go Test (Self-hosted)
+
+on:
+  push:
+    branches: [ Web ]
+  pull_request:
+    branches: [ Web ]
+
+jobs:
+  test:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v3
+
+      - name: Instalar dependencias Go
+        run: go mod download
+
+      - name: Ejecutar pruebas unitarias
+        run: go test ./... -v
